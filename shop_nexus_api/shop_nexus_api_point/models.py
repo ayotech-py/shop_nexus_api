@@ -20,6 +20,7 @@ class Seller(models.Model):
 
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
     phone = models.IntegerField()
     address = models.TextField()
 
@@ -29,7 +30,11 @@ class Customer(models.Model):
 
 class Product(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='product_images/', default='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS42Ibo_SzGpRMi1PRl_c0k0SVj7zSk7KGUujqu1U0S_Q&s')
+    image = models.ImageField(upload_to='product_images/', default='no-product-img.png')
+    img_1 = models.ImageField(upload_to='product_images/', default='no-product-img.png')
+    img_2 = models.ImageField(upload_to='product_images/', default='no-product-img.png')
+    img_3 = models.ImageField(upload_to='product_images/', default='no-product-img.png')
+    img_4 = models.ImageField(upload_to='product_images/', default='no-product-img.png')
     name = models.CharField(max_length=255)
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)

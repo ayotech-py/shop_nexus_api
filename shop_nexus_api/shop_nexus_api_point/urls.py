@@ -25,5 +25,6 @@ router.register(r'products', ProductViewset, basename=Product)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('customer-register/', CustomerRegisterView.as_view()),
     path('api-auth/', include('rest_framework.urls')),
 ]
