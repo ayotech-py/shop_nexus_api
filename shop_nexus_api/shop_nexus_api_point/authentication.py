@@ -9,6 +9,7 @@ class Authentication(BaseAuthentication):
 
     def authenticate(self, request):
         data = self.validate_request(request.headers)
+        print(data)
 
         if not data:
             return None, None
@@ -24,6 +25,7 @@ class Authentication(BaseAuthentication):
 
     def validate_request(self, headers):
         authorization = headers.get('Authorization', None)
+        print(authorization)
 
         if not authorization:
             return None

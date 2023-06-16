@@ -18,4 +18,15 @@ class RefreshSerializer(serializers.Serializer):
 class CustomerRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
-        fields = '__all__'
+        fields = ['']
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializers()
+    class Meta:
+        model = OrderItem
+        fields = ('id', 'product', 'customer', 'quantity')

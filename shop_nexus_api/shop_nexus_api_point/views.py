@@ -46,35 +46,79 @@ class ProductViewset(viewsets.ModelViewSet):
     serializer_class = ProductSerializers
     queryset = Product.objects.all()
 
+class OrderItemViewset(viewsets.ModelViewSet):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = OrderItemSerializer
+    queryset = OrderItem.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        product = request.data['product']
+        customer = request.data['customer']
+        user = User.objects.get(username=customer)
+        customer = Customer.objects.get(user=user)
+
+        product = Product.objects.get(id=product)
+        order_item = OrderItem.objects.create(customer=customer, product=product, quantity=1)
+        serializer = self.get_serializer(order_item)
+        return Response(serializer.data, status=200)
+    
+    def destroy(self, request, *args, **kwargs):
+        product = request.data['product']
+        customer = request.data['customer']
+        user = User.objects.get(username=customer)
+        customer = Customer.objects.get(user=user)
+
+        product = Product.objects.get(id=product)
+        OrderItem.objects.filter(product=product).delete()
+        return Response({'success':'item deleted'}, status=200)
 
 class CustomerRegisterView(APIView):
     serializer_class = CustomerRegisterSerializer
 
     def post(self, request):
         data = request.data
-        print(data)
-        serializer = self.serializer_class(data=data)
-        serializer.is_valid(raise_exception=True)
 
-        user = authenticate(
-            username=serializer.validated_data['user'],)
+        user = authenticate(email=data['email'])
 
         if user:
             return Response({"error": "Username or Email already exist"}, status=400)
 
         try:
-            user = User.objects.create_user(username=serializer.validated_data['email'], password=serializer.validated_data['password'])
+            user = User.objects.create_user(username=data['email'], password=data['password'])
+            print(type(data['phone']))
             user.save()
-            user_id = user.username
-            Customer.objects.create(user=user_id, **serializer.validated_data)
+            Customer.objects.create(user_id=user.id, name=data['name'], phone=int(data['phone']), address=data['address'])
             return Response({"success": "Your account has been successfully created"})
-        except Exception:
+        except Exception as e:
+            print(e)
             return Response({"error": "Username or Email already exist"}, status=400)
     
-    def get(self, request):
-        customer = Customer.objects.filter(id>=0)
-        return Response({'data': json.dumps(customer)})
+    
+class LoginView(APIView):
+    serializer_class = LoginSerializer
 
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        user = authenticate(
+            username=serializer.validated_data['email'],
+            password=serializer.validated_data['password'])
+
+        if not user:
+            return Response({"error": "invalid login or password"}, status=400)
+
+        Jwt.objects.filter(user_id=user.pk).delete()
+
+        access = get_access_token({"user_id": user.id})
+        refresh = get_refresh_token()
+
+        Jwt.objects.create(user_id=user.id, access=access, refresh=refresh)
+
+        return Response({"access": access, "refresh": refresh, "username": user.username})
 
 # the class renews the access token with the refresh token
 class RefreshView(APIView):
@@ -102,3 +146,21 @@ class RefreshView(APIView):
         active_jwt.save()
 
         return Response({"access": access, "refresh": refresh})
+
+class GetSecuredData(APIView):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.user.id
+        user = Customer.objects.get(user=user_id)
+        orders = OrderItem.objects.filter(customer=user.id)
+        serialized_order = OrderItemSerializer(orders, many=True)
+        print(serialized_order.data)
+        context = {
+            'name': user.name,
+            'address': user.address,
+            'phone': user.phone,
+            'orderitems': serialized_order.data,
+        }
+        return Response({'data': context})
