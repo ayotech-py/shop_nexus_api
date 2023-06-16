@@ -72,6 +72,7 @@ class OrderItemViewset(viewsets.ModelViewSet):
 
         product = Product.objects.get(id=product)
         OrderItem.objects.filter(product=product).delete()
+        
         return Response({'success':'item deleted'}, status=200)
 
 class CustomerRegisterView(APIView):
@@ -87,12 +88,10 @@ class CustomerRegisterView(APIView):
 
         try:
             user = User.objects.create_user(username=data['email'], password=data['password'])
-            print(type(data['phone']))
             user.save()
             Customer.objects.create(user_id=user.id, name=data['name'], phone=int(data['phone']), address=data['address'])
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
-            print(e)
             return Response({"error": "Username or Email already exist"}, status=400)
     
     
@@ -156,7 +155,19 @@ class GetSecuredData(APIView):
         user = Customer.objects.get(user=user_id)
         orders = OrderItem.objects.filter(customer=user.id)
         serialized_order = OrderItemSerializer(orders, many=True)
-        print(serialized_order.data)
+        for i in range(len(serialized_order.data)):
+            image = serialized_order.data[i]['product']['image']
+            img_1 = serialized_order.data[i]['product']['img_1']
+            img_2 = serialized_order.data[i]['product']['img_2']
+            img_3 = serialized_order.data[i]['product']['img_3']
+            img_4 = serialized_order.data[i]['product']['img_4']
+
+            serialized_order.data[i]['product']['image'] = 'http://127.0.0.1:8000' + image
+            serialized_order.data[i]['product']['img_1'] = 'http://127.0.0.1:8000' + img_1
+            serialized_order.data[i]['product']['img_2'] = 'http://127.0.0.1:8000' + img_2
+            serialized_order.data[i]['product']['img_3'] = 'http://127.0.0.1:8000' + img_3
+            serialized_order.data[i]['product']['img_4'] = 'http://127.0.0.1:8000' + img_4
+
         context = {
             'name': user.name,
             'address': user.address,
