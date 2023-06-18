@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, auth
 import uuid
 
 class Seller(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     phone = models.IntegerField()

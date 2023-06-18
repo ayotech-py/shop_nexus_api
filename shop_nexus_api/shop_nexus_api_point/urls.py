@@ -23,11 +23,14 @@ from .models import *
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewset, basename=Product)
 router.register(r'orderitems', OrderItemViewset, basename=OrderItem)
+router.register(r'seller', SellerViewset, basename=Seller)
+
 
 urlpatterns = [
     path('', include(router.urls)),
     path('customer-register/', CustomerRegisterView.as_view()),
     path('customer-login/', LoginView.as_view()),
+    path('seller-register/', SellerRegView.as_view()),
     path('get-user-details/', GetSecuredData.as_view()),
     path('api-auth/', include('rest_framework.urls')),
 ]

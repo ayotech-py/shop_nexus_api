@@ -15,6 +15,8 @@ from .authentication import Authentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 import json
+from django.core.files.base import ContentFile
+import base64
 
 def get_rand(length):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -93,7 +95,40 @@ class CustomerRegisterView(APIView):
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
             return Response({"error": "Username or Email already exist"}, status=400)
-    
+
+class SellerRegView(APIView):
+    def post(self, request):
+        data = request.data
+        name = 'photo'
+        image = data['image']
+        format, imgstr = image.split(';base64,')
+        ext = format.split('/')[-1]
+        image_file = ContentFile(base64.b64decode(imgstr), name=f'{name}.{ext}')
+
+        if User.objects.filter(username=data['email']).exists():
+            return Response({"error": "Username or Email already exist"}, status=400)
+
+        try:
+            user = User.objects.create_user(username=data['email'], password=data['password'])
+            user.save()
+            Seller.objects.create(
+                user_id=user.id, 
+                name=data['name'], 
+                email=data['email'], 
+                phone=int(data['phone']), 
+                address=data['address'], 
+                bio=data['bio'],
+                about=data['about'],
+                rating=5,
+                business_name=data['businessname'],
+                business_category=data['businesscategory'],
+                business_reg_no=data['businessreg'],
+                business_logo=image_file
+                )
+            return Response({"success": "Your account has been successfully created"})
+        except Exception as e:
+            print(e)
+            return Response({"error": 'wetin sup'}, status=400)
     
 class LoginView(APIView):
     serializer_class = LoginSerializer
@@ -175,3 +210,16 @@ class GetSecuredData(APIView):
             'orderitems': serialized_order.data,
         }
         return Response({'data': context})
+
+class SellerViewset(viewsets.ModelViewSet):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = SellerSerializer
+
+    def get_queryset(self):
+        data = self.request.headers
+        user = data['User']
+        user_id = User.objects.get(username=user)
+        print(user_id.id)
+        return Seller.objects.filter(user_id=user_id.id)
