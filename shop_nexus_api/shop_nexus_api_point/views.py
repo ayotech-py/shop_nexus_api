@@ -43,10 +43,43 @@ def get_refresh_token():
         algorithm="HS256"
     )
 
+def convertImage(image):
+    name = 'photo'
+    format, imgstr = image.split(';base64,')
+    ext = format.split('/')[-1]
+    image_file = ContentFile(base64.b64decode(imgstr), name=f'{name}.{ext}')
+    return image_file
 
 class ProductViewset(viewsets.ModelViewSet):
     serializer_class = ProductSerializers
     queryset = Product.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        user = request.headers['user']
+        user_id = User.objects.get(username=user)
+        seller_id = Seller.objects.get(user_id=user_id.id)
+        data = request.data
+        images = data['images']
+
+        newProduct = Product.objects.create(
+            seller_id=seller_id.id,
+            image=convertImage(images[0]),
+            img_1=convertImage(images[1]),
+            img_2=convertImage(images[2]),
+            img_3=convertImage(images[3]),
+            img_4=convertImage(images[4]),
+            name=data['name'],
+            description=data['description'],
+            price=data['price'],
+            category=data['category'],
+            count=data['quantity'],
+            rating=4,
+            featured=False
+            )
+        
+        serializer = self.get_serializer(newProduct)
+        return Response(serializer.data, status=200)
+
 
 class OrderItemViewset(viewsets.ModelViewSet):
     authentication_classes = [Authentication]
@@ -223,3 +256,19 @@ class SellerViewset(viewsets.ModelViewSet):
         user_id = User.objects.get(username=user)
         print(user_id.id)
         return Seller.objects.filter(user_id=user_id.id)
+    
+class SellerProductViewset(viewsets.ModelViewSet):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    serializer_class = ProductSerializers
+
+    def get_queryset(self):
+        data = self.request.headers
+        user = data['User']
+        user_id = User.objects.get(username=user)
+        print(user_id.id)
+        seller_id = Seller.objects.get(user_id=user_id.id)
+        print('seller id')
+        print(seller_id.id)
+        return Product.objects.filter(seller_id=seller_id.id)

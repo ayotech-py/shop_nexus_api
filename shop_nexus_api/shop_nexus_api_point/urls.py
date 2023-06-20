@@ -23,6 +23,7 @@ from .models import *
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewset, basename=Product)
 router.register(r'orderitems', OrderItemViewset, basename=OrderItem)
+router.register(r'seller-product', SellerProductViewset, basename=Product)
 router.register(r'seller', SellerViewset, basename=Seller)
 
 
