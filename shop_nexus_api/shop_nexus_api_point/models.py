@@ -51,7 +51,7 @@ class Product(models.Model):
 
 class OrderItem(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    product = models.OneToOneField(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
     def __str__(self):

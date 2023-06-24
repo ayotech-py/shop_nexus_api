@@ -176,8 +176,41 @@ class LoginView(APIView):
             password=serializer.validated_data['password'])
 
         if not user:
-            return Response({"error": "invalid login or password"}, status=400)
+            return Response({"error": "invalid email or password"}, status=400)
 
+        check_user = Customer.objects.filter(user_id=user.id).exists()
+
+        if not check_user:
+            return Response({"error": "invalid emall or password"}, status=400)
+
+        Jwt.objects.filter(user_id=user.pk).delete()
+
+        access = get_access_token({"user_id": user.id})
+        refresh = get_refresh_token()
+
+        Jwt.objects.create(user_id=user.id, access=access, refresh=refresh)
+
+        return Response({"access": access, "refresh": refresh, "username": user.username})
+    
+class SellerLoginView(APIView):
+    serializer_class = LoginSerializer
+
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        user = authenticate(
+            username=serializer.validated_data['email'],
+            password=serializer.validated_data['password'])
+
+        if not user:
+            return Response({"error": "invalid login or password"}, status=400)
+        
+        check_user = Seller.objects.filter(user_id=user.id).exists()
+        if not check_user:
+            return Response({"error": "invalid login or password"}, status=400)
+        
         Jwt.objects.filter(user_id=user.pk).delete()
 
         access = get_access_token({"user_id": user.id})
@@ -268,7 +301,8 @@ class SellerProductViewset(viewsets.ModelViewSet):
         user = data['User']
         user_id = User.objects.get(username=user)
         print(user_id.id)
-        seller_id = Seller.objects.get(user_id=user_id.id)
-        print('seller id')
-        print(seller_id.id)
-        return Product.objects.filter(seller_id=seller_id.id)
+        try:
+            seller_id = Seller.objects.get(user_id=user_id.id)
+            return Product.objects.filter(seller_id=seller_id.id)
+        except Exception:
+            return Response({'error': "Seller does not exist"}, status=400)

@@ -31,6 +31,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('customer-register/', CustomerRegisterView.as_view()),
     path('customer-login/', LoginView.as_view()),
+    path('seller-login/', SellerLoginView.as_view()),
     path('seller-register/', SellerRegView.as_view()),
     path('get-user-details/', GetSecuredData.as_view()),
     path('api-auth/', include('rest_framework.urls')),
