@@ -256,7 +256,7 @@ class GetSecuredData(APIView):
     def get(self, request):
         user_id = request.user.id
         user = Customer.objects.get(user=user_id)
-        orders = OrderItem.objects.filter(customer=user.id)
+        orders = OrderItem.objects.filter(customer=user.id, status=False)
         serialized_order = OrderItemSerializer(orders, many=True)
         for i in range(len(serialized_order.data)):
             image = serialized_order.data[i]['product']['image']
@@ -320,7 +320,23 @@ class LastPaymentViewset(APIView):
         last_order = list(queryset)[-1]
         return Response({'data': last_order.transaction_id})
 
+class InvoiceViewset(APIView):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user_id = request.user
+        customer = Customer.objects.get(user_id=user_id.id)
+        queryset = Order.objects.filter(customer=customer.id)
+        queryset = list(queryset)[-1]
+        order_list = eval(queryset.orderitem_list)
+        orders = OrderItem.objects.filter(id__in=order_list)
+        serialized_order = OrderItemSerializer(orders, many=True)
+
+        context = {
+            'orders': serialized_order.data,
+        }
+        return Response(context, status=200)
 
 class PaymentViewset(APIView):
     authentication_classes = [Authentication]
@@ -337,11 +353,15 @@ class PaymentViewset(APIView):
         headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
         r = requests.get(url, headers=headers)
         response = r.json()
-        print(response)
-        print(ref_id)
+
         if response['status']:
             status = response['data']['status']
             payment = Payment.objects.get(transaction_id=ref_id)
+            order_list = eval(payment.order.orderitem_list)
+            for i in order_list:
+                queryset = OrderItem.objects.get(id=i)
+                queryset.status = True
+                queryset.save()
             payment.status = status
             payment.save()
             name = payment.customer.name
@@ -382,14 +402,13 @@ class PaymentViewset(APIView):
         body = {
             'amount': amount * 100,
             'email': email,
-            'callback_url': 'http://localhost:3000/payment-receipt/70zi0evup7',
+            'callback_url': 'http://localhost:3000/payment-receipt/invoice',
         }
-        print(str(order_id))
         url = 'https://api.paystack.co/transaction/initialize'
         headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
         r = requests.post(url, headers=headers, data=body)
         response = r.json()
-        order_created = Order.objects.create(orderitem_list=str(order_id), total_amount=amount)
+        order_created = Order.objects.create(customer=customer, orderitem_list=str(order_id), total_amount=amount)
         order_created.save()
         Payment.objects.create(customer=customer, amount=amount, order_id=order_created.id, status="pending", transaction_id=response['data']['reference'])
         return Response({'redirect_url': response['data']['authorization_url']}, status=200)

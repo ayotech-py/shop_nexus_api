@@ -36,5 +36,6 @@ urlpatterns = [
     path('get-user-details/', GetSecuredData.as_view()),
     path('make_payment/', PaymentViewset.as_view()),
     path('last_payment/', LastPaymentViewset.as_view()),
+    path('orders/', InvoiceViewset.as_view()),
     path('api-auth/', include('rest_framework.urls')),
 ]
