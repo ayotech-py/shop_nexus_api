@@ -17,6 +17,8 @@ from rest_framework.views import APIView
 import json
 from django.core.files.base import ContentFile
 import base64
+from django.conf import settings
+import requests
 
 def get_rand(length):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -306,3 +308,88 @@ class SellerProductViewset(viewsets.ModelViewSet):
             return Product.objects.filter(seller_id=seller_id.id)
         except Exception:
             return Response({'error': "Seller does not exist"}, status=400)
+
+class LastPaymentViewset(APIView):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.user
+        customer = Customer.objects.get(user_id=user_id.id)
+        queryset = Payment.objects.filter(customer_id=customer.id)
+        last_order = list(queryset)[-1]
+        return Response({'data': last_order.transaction_id})
+
+
+
+class PaymentViewset(APIView):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    serializers_class = PaymentSerializer
+
+    def get(self, request):
+        user_id = request.user
+        email = user_id.username
+        customer = Customer.objects.get(user_id=user_id.id)
+        ref_id = request.GET['ref_id']
+        url = 'https://api.paystack.co/transaction/verify/{}'.format(ref_id)
+        headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+        r = requests.get(url, headers=headers)
+        response = r.json()
+        print(response)
+        print(ref_id)
+        if response['status']:
+            status = response['data']['status']
+            payment = Payment.objects.get(transaction_id=ref_id)
+            payment.status = status
+            payment.save()
+            name = payment.customer.name
+            order = payment.order.id
+            time = payment.timestamp
+            amount = payment.amount
+            status = payment.status
+            transaction_id = payment.transaction_id
+
+            context = {
+                'name': name,
+                'order_id': order,
+                'time': time,
+                'amount': amount,
+                'status': status,
+                'transaction_id': transaction_id
+            }
+
+            return Response(context, status=200)
+        else:
+            return Response(response, status=400)
+
+
+    def post(self, request):
+        data = self,request.data
+        user_id = request.user
+        email = user_id.username
+        customer = Customer.objects.get(user_id=user_id.id)
+        orderitem = OrderItem.objects.filter(customer_id=customer.id)
+        amount = 0
+        order_id = []
+        for item in list(orderitem):
+            order_id.append(item.id)
+            quantity = item.quantity
+            price = item.product.price
+            sum = quantity * price
+            amount = amount + sum 
+        body = {
+            'amount': amount * 100,
+            'email': email,
+            'callback_url': 'http://localhost:3000/payment-receipt/70zi0evup7',
+        }
+        print(str(order_id))
+        url = 'https://api.paystack.co/transaction/initialize'
+        headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
+        r = requests.post(url, headers=headers, data=body)
+        response = r.json()
+        order_created = Order.objects.create(orderitem_list=str(order_id), total_amount=amount)
+        order_created.save()
+        Payment.objects.create(customer=customer, amount=amount, order_id=order_created.id, status="pending", transaction_id=response['data']['reference'])
+        return Response({'redirect_url': response['data']['authorization_url']}, status=200)

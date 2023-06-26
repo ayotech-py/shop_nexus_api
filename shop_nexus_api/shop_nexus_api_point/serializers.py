@@ -30,3 +30,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = ('id', 'product', 'customer', 'quantity')
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        models = Payment
+        fields = '__all__'

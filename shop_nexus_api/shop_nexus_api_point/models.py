@@ -51,14 +51,14 @@ class Product(models.Model):
 
 class OrderItem(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.OneToOneField(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
     def __str__(self):
         return f"{self.product.name} - Quantity: {self.quantity}"
 
 class Order(models.Model):
-    orderitem= models.ForeignKey(OrderItem, on_delete=models.CASCADE)
+    orderitem_list = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -75,3 +75,17 @@ class Jwt(models.Model):
 
     def __str__(self):
         return f"{User.objects.get(id=self.user.id)}"
+
+class Payment(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    order = models.OneToOneField(Order, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=100)
+    # Add other fields as needed
+
+    def __str__(self):
+        return f"Payment ID: {self.id}, User: {self.customer.name}, Amount: {self.amount}, Status: {self.status}"
+
+
