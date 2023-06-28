@@ -81,6 +81,13 @@ class ProductViewset(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(newProduct)
         return Response(serializer.data, status=200)
+    
+    def update(self, request, *args, **kwargs):
+        user = request.headers['user']
+        user_id = User.objects.get(username=user)
+        seller_id = Seller.objects.get(user_id=user_id.id)
+        data = request.data
+        return Response(status=200)
 
 
 class OrderItemViewset(viewsets.ModelViewSet):
@@ -100,6 +107,20 @@ class OrderItemViewset(viewsets.ModelViewSet):
         order_item = OrderItem.objects.create(customer=customer, product=product, quantity=1)
         serializer = self.get_serializer(order_item)
         return Response(serializer.data, status=200)
+    
+    def update(self, request, *args, **kwargs):
+        product = request.data['product']
+        customer = request.data['customer']
+        quantity = request.data['quantity']
+        user = User.objects.get(username=customer)
+        customer = Customer.objects.get(user=user)
+
+        product = Product.objects.get(id=product)
+        orderitem = OrderItem.objects.get(customer=customer.id, product=product)
+        orderitem.quantity = quantity
+        orderitem.save()
+        print(orderitem.quantity)
+        return Response({'success':'item increased'}, status=200)
     
     def destroy(self, request, *args, **kwargs):
         product = request.data['product']
@@ -335,8 +356,26 @@ class InvoiceViewset(APIView):
 
         context = {
             'orders': serialized_order.data,
+            'status': 200
         }
-        return Response(context, status=200)
+        return Response(context)
+    
+class SellerOrder(APIView):
+    authentication_classes = [Authentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        data = self.request.headers
+        user = data['User']
+        user_id = User.objects.get(username=user)
+        try:
+            seller_id = Seller.objects.get(user_id=user_id.id)
+            fetched_order = OrderItem.objects.filter(product__seller__id=seller_id.id, status=True)
+            serializer = OrderItemSerializer(fetched_order, many=True)
+            return Response(serializer.data, status=200)
+        except Exception:
+            return Response({'error': "Seller does not exist"}, status=400)
+
 
 class PaymentViewset(APIView):
     authentication_classes = [Authentication]
@@ -390,7 +429,7 @@ class PaymentViewset(APIView):
         user_id = request.user
         email = user_id.username
         customer = Customer.objects.get(user_id=user_id.id)
-        orderitem = OrderItem.objects.filter(customer_id=customer.id)
+        orderitem = OrderItem.objects.filter(customer_id=customer.id, status=False)
         amount = 0
         order_id = []
         for item in list(orderitem):
@@ -408,7 +447,7 @@ class PaymentViewset(APIView):
         headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
         r = requests.post(url, headers=headers, data=body)
         response = r.json()
-        order_created = Order.objects.create(customer=customer, orderitem_list=str(order_id), total_amount=amount)
+        order_created = Order.objects.create(customer=customer, orderitem_list=str(order_id), total_amount=amount + 1000)
         order_created.save()
         Payment.objects.create(customer=customer, amount=amount, order_id=order_created.id, status="pending", transaction_id=response['data']['reference'])
         return Response({'redirect_url': response['data']['authorization_url']}, status=200)

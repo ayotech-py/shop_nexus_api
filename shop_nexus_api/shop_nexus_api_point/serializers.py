@@ -20,6 +20,11 @@ class CustomerRegisterSerializer(serializers.ModelSerializer):
         model = Customer
         fields = ['']
 
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
@@ -27,6 +32,8 @@ class LoginSerializer(serializers.Serializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = ProductSerializers()
+    customer = CustomerSerializer()
+    
     class Meta:
         model = OrderItem
         fields = ('id', 'product', 'customer', 'quantity')
