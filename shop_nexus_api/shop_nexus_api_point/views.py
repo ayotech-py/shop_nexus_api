@@ -150,6 +150,7 @@ class CustomerRegisterView(APIView):
             Customer.objects.create(user_id=user.id, name=data['name'], phone=int(data['phone']), address=data['address'])
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
+            print(e)
             return Response({"error": "Username or Email already exist"}, status=400)
 
 class SellerRegView(APIView):
@@ -166,12 +167,11 @@ class SellerRegView(APIView):
 
         try:
             user = User.objects.create_user(username=data['email'], password=data['password'])
-            user.save()
             Seller.objects.create(
                 user_id=user.id, 
                 name=data['name'], 
                 email=data['email'], 
-                phone=int(data['phone']), 
+                phone=data['phone'], 
                 address=data['address'], 
                 bio=data['bio'],
                 about=data['about'],
@@ -181,6 +181,7 @@ class SellerRegView(APIView):
                 business_reg_no=data['businessreg'],
                 business_logo=image_file
                 )
+            user.save()
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
             print(e)
@@ -439,7 +440,7 @@ class PaymentViewset(APIView):
             sum = quantity * price
             amount = amount + sum 
         body = {
-            'amount': amount * 100,
+            'amount': (amount + 1000) * 100,
             'email': email,
             'callback_url': 'http://localhost:3000/payment-receipt/invoice',
         }

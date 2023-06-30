@@ -6,7 +6,7 @@ class Seller(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    phone = models.IntegerField()
+    phone = models.CharField(max_length=20)
     address = models.TextField()
     bio = models.CharField(max_length=255)
     about = models.TextField(max_length=255)
@@ -23,7 +23,7 @@ class Seller(models.Model):
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    phone = models.IntegerField()
+    phone = models.CharField(max_length=20)
     address = models.TextField()
 
     def __str__(self):
