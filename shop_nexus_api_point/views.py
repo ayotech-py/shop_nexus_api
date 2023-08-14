@@ -195,7 +195,7 @@ class SellerRegView(APIView):
                 business_name=data["businessname"],
                 business_category=data["businesscategory"],
                 business_reg_no=data["businessreg"],
-                business_logo=image_file,
+                business_logo=convertImage(image),
             )
             user.save()
             return Response({"success": "Your account has been successfully created"})
