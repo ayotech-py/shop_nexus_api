@@ -201,7 +201,7 @@ class SellerRegView(APIView):
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
             print(e)
-            return Response({"error": "wetin sup"}, status=400)
+            return Response({"error": e}, status=400)
 
 
 class LoginView(APIView):
