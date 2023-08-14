@@ -178,3 +178,6 @@ load_dotenv(find_dotenv())
 
 PAYSTACK_SECRET_KEY = os.environ["PAYSTACK_SECRET_KEY"]
 PAYSTACK_PUBLIC_KEY = os.environ["PAYSTACK_PUBLIC_KEY"]
+
+
+WSGI_APPLICATION = "shop_nexus_api.wsgi.app"
