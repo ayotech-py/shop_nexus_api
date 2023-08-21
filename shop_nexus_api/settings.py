@@ -109,18 +109,18 @@ WSGI_APPLICATION = "shop_nexus_api.wsgi.application"
     }
 } """
 
-""" DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'shopnexus',
-        'USER': 'root',
-        'PASSWORD': 'mysqlpassword',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-} """
-
 DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "shopnexus",
+        "USER": "root",
+        "PASSWORD": "mysqlpassword",
+        "HOST": "localhost",
+        "PORT": "3306",
+    }
+}
+
+""" DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "verceldb",
@@ -128,7 +128,7 @@ DATABASES = {
         "PASSWORD": "4ofEQw9MVugO",
         "HOST": "ep-cold-frost-869893-pooler.us-east-1.postgres.vercel-storage.com",
     }
-}
+} """
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -173,8 +173,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles_build", "static")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = "/tmp/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "/tmp/media")
+MEDIA_URL = "media/"
+# MEDIA_ROOT = os.path.join(BASE_DIR, "/tmp/media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 load_dotenv(find_dotenv())
 

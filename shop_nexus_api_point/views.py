@@ -105,13 +105,27 @@ class OrderItemViewset(viewsets.ModelViewSet):
         customer = request.data["customer"]
         user = User.objects.get(username=customer)
         customer = Customer.objects.get(user=user)
-
         product = Product.objects.get(id=product)
-        order_item = OrderItem.objects.create(
-            customer=customer, product=product, quantity=1
-        )
-        serializer = self.get_serializer(order_item)
-        return Response(serializer.data, status=200)
+
+        try:
+            order_item_check = list(
+                OrderItem.objects.filter(customer=customer, product=product)
+            )[-1]
+
+            if order_item_check.status == False:
+                return Response({"message": "Item already added to cart"}, status=400)
+            else:
+                order_item = OrderItem.objects.create(
+                    customer=customer, product=product, quantity=1
+                )
+                serializer = self.get_serializer(order_item)
+            return Response({"message": "Item successfully added to cart"}, status=200)
+        except Exception as e:
+            order_item = OrderItem.objects.create(
+                customer=customer, product=product, quantity=1
+            )
+            serializer = self.get_serializer(order_item)
+            return Response({"message": "Item successfully added to cart"}, status=200)
 
     def update(self, request, *args, **kwargs):
         product = request.data["product"]
@@ -124,7 +138,6 @@ class OrderItemViewset(viewsets.ModelViewSet):
         orderitem = OrderItem.objects.get(customer=customer.id, product=product)
         orderitem.quantity = quantity
         orderitem.save()
-        print(orderitem.quantity)
         return Response({"success": "item increased"}, status=200)
 
     def destroy(self, request, *args, **kwargs):
@@ -163,7 +176,6 @@ class CustomerRegisterView(APIView):
             )
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
-            print(e)
             return Response({"error": "Username or Email already exist"}, status=400)
 
 
@@ -200,7 +212,6 @@ class SellerRegView(APIView):
             user.save()
             return Response({"success": "Your account has been successfully created"})
         except Exception as e:
-            print(e)
             return Response({"error": str(e)}, status=400)
 
 
@@ -302,6 +313,7 @@ class GetSecuredData(APIView):
 
     def get(self, request):
         user_id = request.user.id
+        user_email = User.objects.get(id=user_id).username
         user = Customer.objects.get(user=user_id)
         orders = OrderItem.objects.filter(customer=user.id, status=False)
         serialized_order = OrderItemSerializer(orders, many=True)
@@ -330,6 +342,7 @@ class GetSecuredData(APIView):
 
         context = {
             "name": user.name,
+            "email": user_email,
             "address": user.address,
             "phone": user.phone,
             "orderitems": serialized_order.data,
@@ -347,7 +360,6 @@ class SellerViewset(viewsets.ModelViewSet):
         data = self.request.headers
         user = data["User"]
         user_id = User.objects.get(username=user)
-        print(user_id.id)
         return Seller.objects.filter(user_id=user_id.id)
 
 
@@ -361,7 +373,6 @@ class SellerProductViewset(viewsets.ModelViewSet):
         data = self.request.headers
         user = data["User"]
         user_id = User.objects.get(username=user)
-        print(user_id.id)
         try:
             seller_id = Seller.objects.get(user_id=user_id.id)
             return Product.objects.filter(seller_id=seller_id.id)
