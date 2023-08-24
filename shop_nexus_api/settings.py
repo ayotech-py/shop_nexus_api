@@ -120,13 +120,23 @@ WSGI_APPLICATION = "shop_nexus_api.wsgi.application"
     }
 } """
 
-DATABASES = {
+""" DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "verceldb",
         "USER": "default",
         "PASSWORD": "4ofEQw9MVugO",
         "HOST": "ep-cold-frost-869893-pooler.us-east-1.postgres.vercel-storage.com",
+    }
+} """
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "aaayotech$shopnexus",
+        "USER": "aaayotech",
+        "PASSWORD": "mysqlpassword",
+        "HOST": "aaayotech.mysql.pythonanywhere-services.com",
     }
 }
 
