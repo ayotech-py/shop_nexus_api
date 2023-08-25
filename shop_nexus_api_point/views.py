@@ -325,19 +325,19 @@ class GetSecuredData(APIView):
             img_4 = serialized_order.data[i]["product"]["img_4"]
 
             serialized_order.data[i]["product"]["image"] = (
-                "http://127.0.0.1:8000" + image
+                "https://aaayotech.pythonanywhere.com" + image
             )
             serialized_order.data[i]["product"]["img_1"] = (
-                "http://127.0.0.1:8000" + img_1
+                "https://aaayotech.pythonanywhere.com" + img_1
             )
             serialized_order.data[i]["product"]["img_2"] = (
-                "http://127.0.0.1:8000" + img_2
+                "https://aaayotech.pythonanywhere.com" + img_2
             )
             serialized_order.data[i]["product"]["img_3"] = (
-                "http://127.0.0.1:8000" + img_3
+                "https://aaayotech.pythonanywhere.com" + img_3
             )
             serialized_order.data[i]["product"]["img_4"] = (
-                "http://127.0.0.1:8000" + img_4
+                "https://aaayotech.pythonanywhere.com" + img_4
             )
 
         context = {
