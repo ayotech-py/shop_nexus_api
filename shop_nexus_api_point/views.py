@@ -324,7 +324,7 @@ class GetSecuredData(APIView):
             img_3 = serialized_order.data[i]["product"]["img_3"]
             img_4 = serialized_order.data[i]["product"]["img_4"]
 
-            serialized_order.data[i]["product"]["image"] = (
+            """ serialized_order.data[i]["product"]["image"] = (
                 "https://aaayotech.pythonanywhere.com" + image
             )
             serialized_order.data[i]["product"]["img_1"] = (
@@ -338,7 +338,7 @@ class GetSecuredData(APIView):
             )
             serialized_order.data[i]["product"]["img_4"] = (
                 "https://aaayotech.pythonanywhere.com" + img_4
-            )
+            ) """
 
         context = {
             "name": user.name,
