@@ -48,7 +48,7 @@ CORS_ALLOW_HEADERS = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://ayotech-py.github.io",
-    "https://michoice-kznzngjlg-ayotech-py.vercel.app"
+    "https://michoice-kznzngjlg-ayotech-py.vercel.app",
     "http://localhost:8080",
     "http://0.0.0.0:8000",
     "http://localhost:3000",
