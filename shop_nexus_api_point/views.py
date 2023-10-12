@@ -491,7 +491,7 @@ class PaymentViewset(APIView):
         body = {
             "amount": (amount + 1000) * 100,
             "email": email,
-            "callback_url": "https://shop-nexus-swart.vercel.app/payment-receipt/invoice",
+            "callback_url": "https://michoice-kznzngjlg-ayotech-py.vercel.app/payment-receipt/invoice",
         }
         url = "https://api.paystack.co/transaction/initialize"
         headers = {"authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
