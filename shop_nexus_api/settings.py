@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from dotenv import load_dotenv, find_dotenv
 import os
+import cloudinary
+import cloudinary.api
+import cloudinary.uploader
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -65,6 +68,8 @@ INSTALLED_APPS = [
     "shop_nexus_api_point",
     "rest_framework",
     "corsheaders",
+    'cloudinary_storage',
+    'cloudinary'
 ]
 
 MIDDLEWARE = [
@@ -120,7 +125,7 @@ WSGI_APPLICATION = "shop_nexus_api.wsgi.application"
     }
 } """
 
-""" DATABASES = {
+DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "verceldb",
@@ -128,9 +133,9 @@ WSGI_APPLICATION = "shop_nexus_api.wsgi.application"
         "PASSWORD": "4ofEQw9MVugO",
         "HOST": "ep-cold-frost-869893-pooler.us-east-1.postgres.vercel-storage.com",
     }
-} """
+}
 
-DATABASES = {
+""" DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "aaayotech$shopnexus",
@@ -138,7 +143,7 @@ DATABASES = {
         "PASSWORD": "mysqlpassword",
         "HOST": "aaayotech.mysql.pythonanywhere-services.com",
     }
-}
+} """
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -186,9 +191,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-MEDIA_URL = "media/"
+MEDIA_URL = "shop_media/"
 # MEDIA_ROOT = os.path.join(BASE_DIR, "/tmp/media")
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "shop_media")
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 load_dotenv(find_dotenv())
 
@@ -197,3 +204,14 @@ load_dotenv(find_dotenv())
 
 PAYSTACK_SECRET_KEY = "sk_test_edb461d647e154482937cad0fbf5f619c2c142d7"
 PAYSTACK_PUBLIC_KEY = "pk_test_80be5fa45cd9c618ea398bd079f47b5f974d938c"
+
+CLOUD_NAME = os.environ["CLOUD_NAME"]
+API_KEY = os.environ['API_KEY']
+API_SECRET = os.environ['API_SECRET']
+
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME" : CLOUD_NAME, 
+    "API_KEY" : API_KEY, 
+    "API_SECRET" : API_SECRET
+}
