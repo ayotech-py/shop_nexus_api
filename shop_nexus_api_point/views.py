@@ -19,6 +19,7 @@ from django.core.files.base import ContentFile
 import base64
 from django.conf import settings
 import requests
+import os
 
 
 def get_rand(length):
@@ -495,3 +496,21 @@ class PaymentViewset(APIView):
         return Response(
             {"redirect_url": response["data"]["authorization_url"]}, status=200
         )
+
+
+class SellerProductFetch(APIView):
+    def get(self, request):
+        seller_name = request.GET['name']
+        auth_key = request.headers['Authorization']
+        if auth_key:
+            bk_auth_key = os.environ['BK_AUTH_KEY']
+            if auth_key == bk_auth_key:
+                seller = Seller.objects.get(business_name=seller_name)
+                product = Product.objects.filter(seller=seller.id)
+                seller_serializer = SellerSerializer(seller)
+                product_serializer = ProductSerializers(product, many=True)
+                return Response({'seller': seller_serializer.data, 'product': product_serializer.data})
+            else:
+                return Response({'error': 'Invalid auth key'}, status=403)
+        else:
+            return Response({'error', 'You dont have permission to access this data'}, status=403)
